@@ -1,0 +1,77 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="search-container" style="padding: 50px;">
+            <form action="{{url_for('main')}}"  method="POST">
+                <div class="input-group mb-3"  style="width: 300px; float: left;">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="inputGroup-sizing-default">Search query</span>
+                    </div>
+                    <input type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" name="search" id="search">
+                </div>
+                  
+                <div class="input-group mb-3" style="width: 300px; float: left;margin-left: 20px;">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="inputGroupSelect01">Language</label>
+                    </div>
+                    <select class="custom-select" id="language" name="language">
+                      <option value="null" selected>Choose...</option>  
+                      <option value="english">English</option>
+                      <option value="hindi">Hindi</option>
+                      <option value="spanish">Spanish</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3" style="width: 300px; float: left;margin-left: 20px;">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="inputGroupSelect01">Country</label>
+                    </div>
+                    <select class="custom-select" id="country" name="country">
+                      <option value="null" selected>Choose...</option>  
+                      <option value="usa">USA</option>
+                      <option value="india">India</option>
+                      <option value="mexico">Mexico</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3" style="width: 300px; float: left;margin-left: 20px;">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="inputGroupSelect01">POI</label>
+                    </div>
+                    <select class="custom-select" id="poi" name="poi">
+                      <option value="null" selected>Choose...</option>   
+                      <option value="JoeBiden">Joe Biden</option>
+                      <option value="KamalaHarris">Kamala Harris</option>
+                      <option value="POTUS">POTUS</option>
+                      <option value="XavierBecerra">Xavier Becerra</option>
+                      <option value="BarackObama">Barack Obama</option>
+                      <option value="narendramodi">Narendra Modi</option>
+                      <option value="drharshvardhan">Dr Harsh Vardhan</option>
+                      <option value="RahulGandhi">Rahul Gandhi</option>
+                      <option value="AmitShah">Amit Shah</option>
+                      <option value="mansukhmandviya">Mansukh Mandviya</option>
+                      <option value="lopezobrador_">López Obrador (President of Mexico)</option>
+                      <option value="HLGatell">Hugo López-Gatell Ramírez</option>
+                      <option value="tatclouthier">Tatiana Clouthier</option>
+                      <option value="m_ebrard">Marcelo Ebrard</option>
+                      <option value="Claudiashein">Claudia Shein</option>
+
+                    </select>
+                </div>
+                <button class="btn btn-outline-secondary" type="submit">Button</button>
+            </form>
+        </div>
+        
+        <table>
+        {% for item in tweetlist %}
+        <tr>
+        <td>{{item}}</td>
+        </tr>
+        {% endfor %}    
+    </table>
+    </body>
+</html>
