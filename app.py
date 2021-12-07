@@ -4,11 +4,18 @@ import json
 import re
 import urllib.request
 from urllib.parse import quote
-from googletrans import Translator
-translator = Translator()
+from translate import Translator
+from textblob import TextBlob
 # from langdetect import detect
 
 app = Flask(__name__)
+
+def clean_tweet(tweet):
+        '''
+        Utility function to clean tweet text by removing links, special characters
+        using simple regex statements.
+        '''
+        return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
 @app.route("/", methods=["POST","GET"])
 def main():
@@ -17,12 +24,7 @@ def main():
         language=request.form['language']
         country=request.form['country']
         poi=request.form['poi']
-        print(query)
-        hashtags = re.findall(r"#(\w+)", query)
-        hashtags = str(hashtags)
-        hashtags = hashtags.replace('[','')
-        hashtags = hashtags.replace(']','')
-        hashtags = quote(hashtags)
+        # print(query)
         for letter in query:
             if letter in {'~', ':', "'", '-', ',', '&', '.',  ';', '?',"'",}:
                 query = query.replace(letter," ")   
@@ -49,7 +51,7 @@ def main():
         if country=='usa':
             country='USA'
         
-        solr_ip_address = 'http://54.172.188.129:8983/solr/'
+        solr_ip_address = 'http://52.90.220.99:8983/solr/'
         CORE_NAME = "IRF21P4"
         # change the url according to your own corename and query
         inurl = solr_ip_address + CORE_NAME + '/select?q='+'text_en'+'%3A'+query+'%0A'+'text_es'+'%3A'+query+'%0A'+'text_hi'+'%3A'+query+'&rows=1000000&wt=json'
@@ -123,7 +125,30 @@ def main():
                     indv_tweets['topics']=topic_highlights
                 else:
                     indv_tweets['topics']=[]
-                indv_tweets['tweet_text']=i[cleaned_tweet_text]
+                
+                indv_tweets['tweet_text']=i[cleaned_tweet_text].encode('utf-8').decode('utf-8')
+                if i['tweet_lang']=='es':
+                    translator=Translator(from_lang='spanish', to_lang='english')
+                    translated_tweet = translator.translate(i['tweet_text'])
+                elif i['tweet_lang']=='hi':
+                    translator=Translator(from_lang='hindi', to_lang='english')
+                    translated_tweet = translator.translate(i['tweet_text'])
+                elif i['tweet_lang']=='en':
+                    translated_tweet = i['tweet_text']
+                else:
+                    translator=Translator(to_lang='english')
+                    translated_tweet = translator.translate(i['tweet_text'])
+
+                # print(translated_tweet," Translated")
+                analysis = TextBlob(clean_tweet(translated_tweet))
+                # set sentiment
+                if analysis.sentiment.polarity > 0:
+                    indv_tweets['sentiment']='positive'
+                elif analysis.sentiment.polarity == 0:
+                    indv_tweets['sentiment']='neutral'
+                else:
+                    indv_tweets['sentiment']='negative'
+                indv_tweets['sentiment_score']=analysis.sentiment.polarity
                 final_filtered_tweets.append(indv_tweets)
 
         return render_template('home.html',tweetlist=final_filtered_tweets)
