@@ -51,7 +51,7 @@ def main():
         if country=='usa':
             country='USA'
         
-        solr_ip_address = 'http://52.90.220.99:8983/solr/'
+        solr_ip_address = 'http://54.163.180.165:8983/solr/'
         
         # check_for_replies = 'http://52.90.220.99:8983/solr/IRF21P4/select?q=*%3A*&wt=json'
         # connect_for_replies = urllib.request.urlopen(check_for_replies)
@@ -121,7 +121,7 @@ def main():
         else:
             poi_filtered_tweet=country_filtered_tweet    
         
-        print(len(poi_filtered_tweet))
+        # print(len(poi_filtered_tweet))
 
         final_filtered_tweets=[]
         if poi_filtered_tweet!=[]:
@@ -146,7 +146,7 @@ def main():
                 else:
                     indv_tweets['topics']=[]
                 
-                indv_tweets['tweet_text']=i[cleaned_tweet_text].encode('utf-8').decode('utf-8')
+                indv_tweets['tweet_text']=i[cleaned_tweet_text]
                 if i['tweet_lang']=='es':
                     translator=Translator(from_lang='spanish', to_lang='english')
                     translated_tweet = translator.translate(i['tweet_text'])
@@ -176,7 +176,6 @@ def main():
                     # print(type(k['replied_to_tweet_id']))
                     if k['replied_to_tweet_id']==int(i['id']):
                         list_of_replies.append(k)
-                # print(list_of_replies)
                 top_pstve_replies=[]
                 top_ngtve_replies=[]
                 max=-1 
@@ -204,12 +203,17 @@ def main():
                         top_ngtve_replies.append(k['tweet_text'])
                         min=sent_analysis.sentiment.polarity
                 for sent_reply,reply in zip(cleaned_replies,templist_for_replies):
-                    if sent_reply.sentiment.polarity==max:
+                    if sent_reply.sentiment.polarity==max and sent_reply.sentiment.polarity>0 and reply not in top_pstve_replies:
                         top_pstve_replies.append(reply)
-                    if sent_reply.sentiment.polarity==min:
+                    elif sent_reply.sentiment.polarity==min and sent_reply.sentiment.polarity<0 and reply not in top_ngtve_replies:
                         top_ngtve_replies.append(reply)
                 indv_tweets['Top Positive Replies']=top_pstve_replies
                 indv_tweets['Top Negative Replies']=top_ngtve_replies
+                tweet_url='https://twitter.com/twitter/statuses/'+i['id']
+                indv_tweets['tweet_url']=tweet_url
+                indv_tweets['country']=i['country']
+                indv_tweets['language']=i['tweet_lang']
+                indv_tweets['verified']=i['verified']
                 final_filtered_tweets.append(indv_tweets)
         else:
             final_filtered_tweets.append("No tweets to show!!")
