@@ -52,10 +52,29 @@ def main():
             country='USA'
         
         solr_ip_address = 'http://52.90.220.99:8983/solr/'
+        
+        # check_for_replies = 'http://52.90.220.99:8983/solr/IRF21P4/select?q=*%3A*&wt=json'
+        # connect_for_replies = urllib.request.urlopen(check_for_replies)
+        # total_data = json.load(connect_for_replies)['response']['docs']
+        poi_reply=[]
+        for pr in range(1,12):
+            with open('C:/Users/mohitsee/Documents/Information_Retrieval/Project_4/project_folder/static/reply_keyword_'+str(pr)+'.json') as json_file:
+                poi_reply+=json.load(json_file)
+        keyword_reply=[]
+        for kr in range(1,16):
+            with open('C:/Users/mohitsee/Documents/Information_Retrieval/Project_4/project_folder/static/reply_'+str(kr)+'.json') as json_file:
+                keyword_reply+=json.load(json_file)
+        total_data=poi_reply+keyword_reply
+        # print(len(total_data))
+
+        # for k in total_data:
+        #     if k['replied_to_tweet_id']==1440293420212260877:
+        #         print("success")
+
         CORE_NAME = "IRF21P4"
         # change the url according to your own corename and query
         inurl = solr_ip_address + CORE_NAME + '/select?q='+'text_en'+'%3A'+query+'%0A'+'text_es'+'%3A'+query+'%0A'+'text_hi'+'%3A'+query+'&rows=1000000&wt=json'
-        print(inurl)
+        # print(inurl)
         data = urllib.request.urlopen(inurl)
         # print(json.load(data))
         docs = json.load(data)['response']['docs']
@@ -67,6 +86,7 @@ def main():
             else:
                 nonpoi_tweet_list.append(i)
         final_tweet_list=poi_tweet_list+nonpoi_tweet_list
+
 
         ReTweet_filtered_tweet=[]
         for i in final_tweet_list:
@@ -100,13 +120,13 @@ def main():
                     poi_filtered_tweet.append(i)
         else:
             poi_filtered_tweet=country_filtered_tweet    
+        
+        print(len(poi_filtered_tweet))
 
-
-        if poi_filtered_tweet=="":
-            poi_filtered_tweet.append("No tweets to show!!")
-        else:
-            final_filtered_tweets=[]
+        final_filtered_tweets=[]
+        if poi_filtered_tweet!=[]:
             for i in poi_filtered_tweet:
+                # print(i['id'])
                 indv_tweets={}
                 for j in list(i.keys()):
                     if 'text_' in j:
@@ -149,7 +169,50 @@ def main():
                 else:
                     indv_tweets['sentiment']='negative'
                 indv_tweets['sentiment_score']=analysis.sentiment.polarity
+
+                list_of_replies=[]
+                for k in total_data:
+                    # print(k['replied_to_tweet_id'],i['id'])
+                    # print(type(k['replied_to_tweet_id']))
+                    if k['replied_to_tweet_id']==int(i['id']):
+                        list_of_replies.append(k)
+                # print(list_of_replies)
+                top_pstve_replies=[]
+                top_ngtve_replies=[]
+                max=-1 
+                min=1
+                cleaned_replies=[]
+                templist_for_replies=[]
+                for k in list_of_replies:
+                    if k['tweet_lang']=='es':
+                        translator=Translator(from_lang='spanish', to_lang='english')
+                        translated_tweet = translator.translate(k['tweet_text'])
+                    elif k['tweet_lang']=='hi':
+                        translator=Translator(from_lang='hindi', to_lang='english')
+                        translated_tweet = translator.translate(k['tweet_text'])
+                    elif k['tweet_lang']=='en':
+                        translated_tweet = k['tweet_text']
+                    else:
+                        translator=Translator(to_lang='english')
+                        translated_tweet = translator.translate(k['tweet_text'])
+                    sent_analysis = TextBlob(clean_tweet(translated_tweet))
+                    cleaned_replies.append(sent_analysis)
+                    templist_for_replies.append(k['tweet_text'])
+                    if sent_analysis.sentiment.polarity>max:
+                        max=sent_analysis.sentiment.polarity
+                    if sent_analysis.sentiment.polarity<min:
+                        top_ngtve_replies.append(k['tweet_text'])
+                        min=sent_analysis.sentiment.polarity
+                for sent_reply,reply in zip(cleaned_replies,templist_for_replies):
+                    if sent_reply.sentiment.polarity==max:
+                        top_pstve_replies.append(reply)
+                    if sent_reply.sentiment.polarity==min:
+                        top_ngtve_replies.append(reply)
+                indv_tweets['Top Positive Replies']=top_pstve_replies
+                indv_tweets['Top Negative Replies']=top_ngtve_replies
                 final_filtered_tweets.append(indv_tweets)
+        else:
+            final_filtered_tweets.append("No tweets to show!!")
 
         return render_template('home.html',tweetlist=final_filtered_tweets)
     else:
