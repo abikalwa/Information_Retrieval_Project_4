@@ -51,7 +51,7 @@ def main():
         if country=='usa':
             country='USA'
         
-        solr_ip_address = 'http://54.163.180.165:8983/solr/'
+        solr_ip_address = 'http://54.144.246.28:8983/solr/'
         
         # check_for_replies = 'http://52.90.220.99:8983/solr/IRF21P4/select?q=*%3A*&wt=json'
         # connect_for_replies = urllib.request.urlopen(check_for_replies)
@@ -222,6 +222,7 @@ def main():
     else:
         return render_template("home.html"); 
     
+
 
 if __name__=="__main__":
     app.debug=True
